@@ -1,7 +1,0 @@
-Flask
-SQLAlchemy
-LoginManager
-UserMixin
-generate_password_hash
-check_password_hash
-func
