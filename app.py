@@ -46,12 +46,57 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def index():
-    return redirect(url_for('dashboard'))
+    # ログインしているユーザーが既に希望を提出したか確認
+    existing_choice = Choice.query.filter_by(user_id=current_user.id).first()
+    if existing_choice:
+        # 提出済みならダッシュボード（更新ページ）へ
+        return redirect(url_for('dashboard'))
+    else:
+        # 未提出なら新規登録ページへ
+        return redirect(url_for('register_choices'))
 
+# ★★ 新規登録専用ページ ★★
+@app.route('/register-choices', methods=['GET', 'POST'])
+@login_required
+def register_choices():
+    # 既に提出済みのユーザーがアクセスしたらダッシュボードに飛ばす
+    if Choice.query.filter_by(user_id=current_user.id).first():
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        choice1_id = request.form.get('choice1')
+        choice2_id = request.form.get('choice2')
+        choice3_id = request.form.get('choice3')
+
+        if not all([choice1_id, choice2_id, choice3_id]) or len(set([choice1_id, choice2_id, choice3_id])) < 3:
+            flash('異なる3つの研究室を選択してください。', 'error')
+            return redirect(url_for('register_choices'))
+
+        # 新しい希望をDBに保存
+        db.session.add(Choice(user_id=current_user.id, priority=1, lab_id=choice1_id))
+        db.session.add(Choice(user_id=current_user.id, priority=2, lab_id=choice2_id))
+        db.session.add(Choice(user_id=current_user.id, priority=3, lab_id=choice3_id))
+        db.session.commit()
+        
+        flash('希望を新規登録しました。', 'success')
+        # 登録後はダッシュボード（更新ページ）へリダイレクト
+        return redirect(url_for('dashboard'))
+
+    labs_for_select = Lab.query.all()
+    return render_template('register_choices.html', labs=labs_for_select)
+
+
+# ★★ 更新専用のダッシュボードページ ★★
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    # まだ提出していないユーザーがアクセスしたら新規登録ページに飛ばす
+    existing_choice = Choice.query.filter_by(user_id=current_user.id).first()
+    if not existing_choice:
+        return redirect(url_for('register_choices'))
+
     if request.method == 'POST':
+        # 既存の希望を一度削除
         Choice.query.filter_by(user_id=current_user.id).delete()
         
         choice1_id = request.form.get('choice1')
@@ -60,30 +105,32 @@ def dashboard():
 
         if not all([choice1_id, choice2_id, choice3_id]) or len(set([choice1_id, choice2_id, choice3_id])) < 3:
             flash('異なる3つの研究室を選択してください。', 'error')
+            # 更新失敗時は再度ダッシュボードを表示
             return redirect(url_for('dashboard'))
 
+        # 新しい希望を保存（更新）
         db.session.add(Choice(user_id=current_user.id, priority=1, lab_id=choice1_id))
         db.session.add(Choice(user_id=current_user.id, priority=2, lab_id=choice2_id))
         db.session.add(Choice(user_id=current_user.id, priority=3, lab_id=choice3_id))
         db.session.commit()
         
-        flash('希望を登録しました。', 'success')
+        flash('希望を更新しました。', 'success')
         return redirect(url_for('dashboard'))
 
+    # --- 表示ロジック ---
     lab_counts = []
-    all_labs = Lab.query.order_by('name').all()
-    for lab in all_labs:
+    all_labs_for_count = Lab.query.order_by('name').all()
+    for lab in all_labs_for_count:
         p1 = Choice.query.filter_by(lab_id=lab.id, priority=1).count()
         p2 = Choice.query.filter_by(lab_id=lab.id, priority=2).count()
         p3 = Choice.query.filter_by(lab_id=lab.id, priority=3).count()
         lab_counts.append({
-            'name': lab.name,
-            'professor': lab.professor,
-            'capacity': lab.capacity,
+            'name': lab.name, 'professor': lab.professor, 'capacity': lab.capacity,
             'p1': p1, 'p2': p2, 'p3': p3
         })
-        
-    return render_template('dashboard.html', lab_counts=lab_counts, labs=all_labs)
+    
+    labs_for_select = Lab.query.all()
+    return render_template('dashboard.html', lab_counts=lab_counts, labs=labs_for_select)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <title>ダッシュボード</title>
+    <title>研究室希望 新規登録</title>
     <style> /* 簡単なスタイル */
-        table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
         .flashes { color: green; }
         .error { color: red; }
     </style>
 </head>
 <body>
-    <h1>研究室 希望状況</h1>
+    <h1>研究室希望 新規登録</h1>
     <p>ようこそ、{{ current_user.id }}さん | <a href="{{ url_for('logout') }}">ログアウト</a></p>
+    <p>第一希望から第三希望まで、異なる研究室を選択して登録してください。</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -21,35 +21,7 @@
         </ul>
       {% endif %}
     {% endwith %}
-    
-    <h2>現在の希望状況</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>研究室名</th>
-                <th>担当教員</th>
-                <th>定員</th>
-                <th>第一希望</th>
-                <th>第二希望</th>
-                <th>第三希望</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for lab in lab_counts %}
-            <tr>
-                <td>{{ lab.name }}</td>
-                <td>{{ lab.professor }}</td>
-                <td>{{ lab.capacity if lab.capacity is not none else 'N/A' }}</td>
-                <td>{{ lab.p1 }}人</td>
-                <td>{{ lab.p2 }}人</td>
-                <td>{{ lab.p3 }}人</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <hr>
-    
-    <h2>希望を更新する</h2>
+
     <form method="POST">
         <label>第一希望:</label>
         <select name="choice1" required>
@@ -63,7 +35,7 @@
         <select name="choice3" required>
             {% for lab in labs %}<option value="{{ lab.id }}">{{ lab.name }}</option>{% endfor %}
         </select><br>
-        <button type="submit">更新する</button>
+        <button type="submit">登録する</button>
     </form>
 </body>
 </html>
