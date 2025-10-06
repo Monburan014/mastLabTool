@@ -96,7 +96,7 @@ def dashboard():
         return redirect(url_for('register_choices'))
 
     if request.method == 'POST':
-        # 既存の希望を一度削除
+        # ... (POSTリクエストの処理は変更なし) ...
         Choice.query.filter_by(user_id=current_user.id).delete()
         
         choice1_id = request.form.get('choice1')
@@ -105,10 +105,8 @@ def dashboard():
 
         if not all([choice1_id, choice2_id, choice3_id]) or len(set([choice1_id, choice2_id, choice3_id])) < 3:
             flash('異なる3つの研究室を選択してください。', 'error')
-            # 更新失敗時は再度ダッシュボードを表示
             return redirect(url_for('dashboard'))
 
-        # 新しい希望を保存（更新）
         db.session.add(Choice(user_id=current_user.id, priority=1, lab_id=choice1_id))
         db.session.add(Choice(user_id=current_user.id, priority=2, lab_id=choice2_id))
         db.session.add(Choice(user_id=current_user.id, priority=3, lab_id=choice3_id))
@@ -118,6 +116,11 @@ def dashboard():
         return redirect(url_for('dashboard'))
 
     # --- 表示ロジック ---
+    
+    # ★★ 登録済みの総人数をカウントする処理を追加 ★★
+    # Choiceテーブルのuser_id列で、重複を除いた数を数える
+    total_registrants = db.session.query(Choice.user_id).distinct().count()
+
     lab_counts = []
     all_labs_for_count = Lab.query.order_by('name').all()
     for lab in all_labs_for_count:
@@ -130,7 +133,12 @@ def dashboard():
         })
     
     labs_for_select = Lab.query.all()
-    return render_template('dashboard.html', lab_counts=lab_counts, labs=labs_for_select)
+    
+    # ★★ total_registrants をテンプレートに渡す ★★
+    return render_template('dashboard.html', 
+                           lab_counts=lab_counts, 
+                           labs=labs_for_select,
+                           total_registrants=total_registrants)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

@@ -11,6 +11,7 @@
     <h1>研究室希望 新規登録</h1>
     <p>ようこそ、{{ current_user.id }}さん | <a href="{{ url_for('logout') }}">ログアウト</a></p>
     <p>第一希望から第三希望まで、異なる研究室を選択して登録してください。</p>
+    <p>登録後に他の人の希望状況を閲覧できます。また、何度でも修正可能です。</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

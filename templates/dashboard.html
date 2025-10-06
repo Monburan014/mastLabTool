@@ -12,6 +12,8 @@
     <h1>研究室 希望状況</h1>
     <p>ようこそ、{{ current_user.id }}さん | <a href="{{ url_for('logout') }}">ログアウト</a></p>
 
+    <h2>現在の希望状況 (登録者数: {{ total_registrants }}人)</h2>
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <ul class="flashes">
