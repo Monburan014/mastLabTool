@@ -10,7 +10,7 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-very-secret-key-that-no-one-should-know'
 # Renderの環境変数DATABASE_URLを読み込む。なければローカルのSQLiteを使う。
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///lab_data.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///lab_data_v2.db')
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
